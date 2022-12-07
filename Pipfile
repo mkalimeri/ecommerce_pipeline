@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+pyarrow = "*"
+dask = {extras = ["distributed"], version = "*"}
+s3fs = "*"
+environs = "*"
+boto3 = "*"
+influxdb-client = {extras = ["extra"], version = "*"}
+influxdb = "*"
+elasticsearch = "*"
+bokeh = "==2.4.3"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
