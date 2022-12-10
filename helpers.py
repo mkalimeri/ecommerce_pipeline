@@ -1,6 +1,7 @@
 import argparse
+from datetime import datetime
 import logging
-from typing import Dict, Tuple
+from typing import Tuple
 
 from environs import Env
 from dotenv import load_dotenv
@@ -21,24 +22,6 @@ def get_environment_variables(env: Env) -> Tuple:
         influxdb_creds = {}
         elastic_creds = {}
 
-        # aws_storage_options = {
-        #     'key': env_var_dict["aws_access_key_id"],
-        #     'secret': env_var_dict["aws_secret_access_key"]
-        # }
-
-        # influxdb_creds = {
-        #     'token': env_var_dict["influxdb_token"],
-        #     'org': env_var_dict["influxdb_org"],
-        #     'bucket': env_var_dict["influxdb_bucket"]
-        # }
-        #
-        # elastic_creds = {
-        #     'user': env_var_dict["elastic_user"],
-        #     'password': env_var_dict["elastic_pw"],
-        #     'cloud_id': env_var_dict["elastic_cloudid"]
-        # }
-
-        # aws_storage_options["region"] = os.getenv("AWS_DEFAULT_REGION")
         aws_storage_options["key"] = os.getenv("AWS_ACCESS_KEY_ID")
         aws_storage_options["secret"] = os.getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -56,16 +39,32 @@ def get_environment_variables(env: Env) -> Tuple:
         logging.exception(f"Could not load environment variables: {e}")
 
 
-def parse_arguments():
-    '''
-
-    :return:
-    '''
+def parse_arguments() -> argparse.Namespace:
+    """
+    Parse input arguments
+    :return:  of input arguments
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--s3_path', '-s3', required=False, default="s3://csci88-sales-data/monthly/",
                         help="the S3 location of the raw data files")
-    parser.add_argument('--run_full_pipeline', '-r', required=False, default=False,
+    parser.add_argument('--run_full_pipeline', '-fp', required=False, default=True,
                         help="should the raw data be read, aggregated and stored in the database?")
-    parser.add_argument('--index_name', '-r', required=False, default='default_index',
+    parser.add_argument('--index_name', '-index_name', required=False, default='hourly_sales_index',
                         help="The name of the Elasticsearch index where the data will be saved")
     return parser.parse_args()
+
+
+def get_preferred_timestamp(timestamp: str, current_format: str, preferred_format:str) -> str:
+    """
+    Returns a shorter version of given timestamp
+    :param timestamp: string: The original timestamp (e.g. '2020-04-24 11:50:39')
+    :param current_format: string: The current format of the timestamp (e.g. '%Y-%m-%d %H:%M:%S')
+    :param preferred_format: string: The shortened format of the timestamp (eg. '%Y-%m-%d %H')
+    :return: string: the timestamp in the desired format
+    """
+    try:
+        ft = datetime.strptime(timestamp, current_format)
+        return datetime.strftime(ft, preferred_format)
+    except Exception as e:
+        logging.exception(f'Could not convert timestamp: {e}')
+        return None

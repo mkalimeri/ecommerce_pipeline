@@ -1,26 +1,10 @@
-from datetime import datetime
 import logging
 from typing import Dict
 
 import pandas as pd
-
 import dask.dataframe as dd
 
-
-def get_preferred_timestamp(timestamp: str, current_format: str, preferred_format:str) -> str:
-    """
-    Returns a shorter version of given timestamp
-    :param timestamp: string: The original timestamp (e.g. '2020-04-24 11:50:39')
-    :param current_format: string: The current format of the timestamp (e.g. '%Y-%m-%d %H:%M:%S')
-    :param preferred_format: string: The shortened format of the timestamp (eg. '%Y-%m-%d %H')
-    :return: string: the timestamp in the desired format
-    """
-    try:
-        ft = datetime.strptime(timestamp, current_format)
-        return datetime.strftime(ft, preferred_format)
-    except Exception as e:
-        logging.exception(f'Could not convert timestamp: {e}')
-        return None
+from helpers import get_preferred_timestamp
 
 
 def import_data(s3_path: str, storage_options: Dict)-> dd:
@@ -28,6 +12,7 @@ def import_data(s3_path: str, storage_options: Dict)-> dd:
     Reads parquet files from filepath
     :param s3_path: string: The path to the S3 bucket the files are located in
     :param storage_options: dictionary: The AWS credentials needed to connect to the bucket
+        (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
     :return: Dask dataframe containing the data
     '''
     try:
@@ -65,7 +50,7 @@ def get_hourly_sales_per_brand_and_category(ddf: dd) -> pd.DataFrame:
     '''
     try:
         logging.info('Aggregating price')
-        ddf = ddf.groupby(['timestamp_hour', 'brand', 'category_code', 'category_id']).price.sum().compute()
+        ddf = ddf.groupby(['timestamp_hour', 'brand', 'category_code']).price.sum().compute()
         ddf = ddf.reset_index()
         return ddf
     except Exception as e:

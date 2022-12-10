@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List
+from typing import List
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import parallel_bulk
@@ -25,7 +25,6 @@ def from_query_to_document(query_res: List, index_name: str) -> List:
                 '_index': index_name,
                 'price': query_res[i]["_value"],
                 'brand': query_res[i]["brand"],
-                'category_id': query_res[i]["category_id"],
                 'category_code': query_res[i]["category_code"],
                 '@timestamp': query_res[i]["_time"]
             })
